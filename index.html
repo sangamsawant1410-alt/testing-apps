@@ -3,74 +3,309 @@
 <head>
   <meta charset="UTF-8">
   <title>Gold Investment Manager</title>
-  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0b1220;
+      color: #e5e7eb;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .app {
+      max-width: 900px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .card {
+      background: #020617;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+    }
+
+    button {
+      background: gold;
+      color: black;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .summary div {
+      background: #020617;
+      padding: 16px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .summary span {
+      font-size: 13px;
+      opacity: 0.7;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #1e293b;
+      text-align: center;
+    }
+
+    #status {
+      margin-top: 10px;
+      color: lightgreen;
+      font-size: 13px;
+    }
+  </style>
 </head>
+
 <body>
 
-  <div class="app">
+<div class="app">
 
-    <h1>Gold Investment Manager</h1>
+  <h1>Gold Investment Manager</h1>
 
-    <!-- Gold Price Input -->
-    <div class="card">
-      <label>Current Gold Price (₹ per gram)</label>
-      <input type="number" id="goldPrice" placeholder="e.g. 6200">
-    </div>
-
-    <!-- Summary -->
-    <div class="summary">
-      <div>
-        <span>Gold Owned</span>
-        <h2 id="totalGrams">0 g</h2>
-      </div>
-      <div>
-        <span>Invested</span>
-        <h2 id="invested">₹0</h2>
-      </div>
-      <div>
-        <span>Current Value</span>
-        <h2 id="currentValue">₹0</h2>
-      </div>
-      <div>
-        <span>Profit / Loss</span>
-        <h2 id="profit">₹0</h2>
-      </div>
-    </div>
-
-    <!-- Add Transaction -->
-    <div class="card">
-      <h3>Add Transaction</h3>
-
-      <select id="type">
-        <option value="BUY">Buy</option>
-        <option value="SELL">Sell</option>
-      </select>
-
-      <input type="number" id="grams" placeholder="Grams">
-      <input type="number" id="price" placeholder="Price per gram">
-      <input type="date" id="date">
-
-      <button onclick="addTransaction()">Save</button>
-    </div>
-
-    <!-- History -->
-    <div class="card">
-      <h3>Transaction History</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Type</th>
-            <th>Grams</th>
-            <th>Price</th>
-          </tr>
-        </thead>
-        <tbody id="history"></tbody>
-      </table>
-    </div>
-
+  <!-- Gold Price -->
+  <div class="card">
+    <label>Current Gold Price (₹ / gram)</label>
+    <input type="number" id="goldPrice" placeholder="e.g. 6200">
   </div>
 
-  <script src="app.js"></script>
+  <!-- Summary -->
+  <div class="summary">
+    <div>
+      <span>Gold Owned</span>
+      <h2 id="totalGrams">0 g</h2>
+    </div>
+    <div>
+      <span>Total Invested</span>
+      <h2 id="invested">₹0</h2>
+    </div>
+    <div>
+      <span>Current Value</span>
+      <h2 id="currentValue">₹0</h2>
+    </div>
+    <div>
+      <span>Profit / Loss</span>
+      <h2 id="profit">₹0</h2>
+    </div>
+  </div>
+
+  <!-- Add Transaction -->
+  <div class="card">
+    <h3>Add Transaction</h3>
+
+    <select id="txType">
+      <option value="BUY">Buy</option>
+      <option value="SELL">Sell</option>
+    </select>
+
+    <select id="buyMode">
+      <option value="AMOUNT">Buy by Amount (₹)</option>
+      <option value="GRAMS">Buy by Grams</option>
+    </select>
+
+    <input type="number" id="amountInput" placeholder="Amount invested (₹)">
+    <input type="number" id="gramsInput" placeholder="Grams" style="display:none;">
+
+    <input type="number" id="priceInput" placeholder="Price per gram">
+    <input type="date" id="dateInput">
+
+    <button id="saveBtn">Save Transaction</button>
+    <p id="status"></p>
+  </div>
+
+  <!-- History -->
+  <div class="card">
+    <h3>Transaction History</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Type</th>
+          <th>Grams</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+      <tbody id="history"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+  /* ---------- STORAGE ---------- */
+  let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+  const goldPriceInput = document.getElementById("goldPrice");
+
+  goldPriceInput.value = localStorage.getItem("goldPrice") || "";
+
+  goldPriceInput.addEventListener("change", () => {
+    localStorage.setItem("goldPrice", goldPriceInput.value);
+    render();
+  });
+
+  /* ---------- UI ELEMENTS ---------- */
+  const buyModeSelect = document.getElementById("buyMode");
+  const amountInput = document.getElementById("amountInput");
+  const gramsInput = document.getElementById("gramsInput");
+  const txTypeSelect = document.getElementById("txType");
+  const statusText = document.getElementById("status");
+
+  buyModeSelect.addEventListener("change", updateInputVisibility);
+  txTypeSelect.addEventListener("change", updateInputVisibility);
+
+  function updateInputVisibility() {
+    if (txTypeSelect.value === "SELL") {
+      buyModeSelect.style.display = "none";
+      amountInput.style.display = "none";
+      gramsInput.style.display = "block";
+      return;
+    }
+
+    buyModeSelect.style.display = "block";
+    if (buyModeSelect.value === "AMOUNT") {
+      amountInput.style.display = "block";
+      gramsInput.style.display = "none";
+    } else {
+      amountInput.style.display = "none";
+      gramsInput.style.display = "block";
+    }
+  }
+
+  updateInputVisibility();
+
+  /* ---------- ADD TRANSACTION ---------- */
+  document.getElementById("saveBtn").addEventListener("click", addTransaction);
+
+  function addTransaction() {
+    const type = txTypeSelect.value;
+    const price = parseFloat(document.getElementById("priceInput").value);
+    const date = document.getElementById("dateInput").value;
+
+    let grams = 0;
+
+    if (!price || !date) {
+      alert("Price and date are required");
+      return;
+    }
+
+    if (type === "BUY") {
+      if (buyModeSelect.value === "AMOUNT") {
+        const amount = parseFloat(amountInput.value);
+        if (!amount) return alert("Enter amount invested");
+        grams = amount / price;
+      } else {
+        grams = parseFloat(gramsInput.value);
+      }
+    } else {
+      grams = parseFloat(gramsInput.value);
+    }
+
+    if (!grams || grams <= 0) {
+      alert("Invalid gold quantity");
+      return;
+    }
+
+    transactions.push({ type, grams, price, date });
+    localStorage.setItem("transactions", JSON.stringify(transactions));
+
+    statusText.innerText = "Transaction saved ✔";
+    clearInputs();
+    render();
+  }
+
+  function clearInputs() {
+    amountInput.value = "";
+    gramsInput.value = "";
+    document.getElementById("priceInput").value = "";
+    document.getElementById("dateInput").value = "";
+  }
+
+  /* ---------- PORTFOLIO ENGINE ---------- */
+  function calculatePortfolio() {
+    let grams = 0;
+    let invested = 0;
+
+    transactions.forEach(t => {
+      if (t.type === "BUY") {
+        grams += t.grams;
+        invested += t.grams * t.price;
+      } else {
+        const avgCost = invested / grams;
+        grams -= t.grams;
+        invested -= avgCost * t.grams;
+      }
+    });
+
+    return { grams, invested };
+  }
+
+  /* ---------- RENDER ---------- */
+  function render() {
+    const goldPrice = parseFloat(goldPriceInput.value) || 0;
+    const { grams, invested } = calculatePortfolio();
+
+    const currentValue = grams * goldPrice;
+    const profit = currentValue - invested;
+
+    document.getElementById("totalGrams").innerText = grams.toFixed(4) + " g";
+    document.getElementById("invested").innerText = "₹" + invested.toFixed(0);
+    document.getElementById("currentValue").innerText = "₹" + currentValue.toFixed(0);
+    document.getElementById("profit").innerText =
+      (profit >= 0 ? "+" : "") + "₹" + profit.toFixed(0);
+
+    const history = document.getElementById("history");
+    history.innerHTML = "";
+
+    transactions.forEach(t => {
+      history.innerHTML += `
+        <tr>
+          <td>${t.date}</td>
+          <td>${t.type}</td>
+          <td>${t.grams.toFixed(4)}</td>
+          <td>₹${t.price}</td>
+        </tr>
+      `;
+    });
+  }
+
+  render();
+</script>
+
 </body>
 </html>
