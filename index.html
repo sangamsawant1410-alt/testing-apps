@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Gold Investment Manager</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app">
+
+    <h1>Gold Investment Manager</h1>
+
+    <!-- Gold Price Input -->
+    <div class="card">
+      <label>Current Gold Price (₹ per gram)</label>
+      <input type="number" id="goldPrice" placeholder="e.g. 6200">
+    </div>
+
+    <!-- Summary -->
+    <div class="summary">
+      <div>
+        <span>Gold Owned</span>
+        <h2 id="totalGrams">0 g</h2>
+      </div>
+      <div>
+        <span>Invested</span>
+        <h2 id="invested">₹0</h2>
+      </div>
+      <div>
+        <span>Current Value</span>
+        <h2 id="currentValue">₹0</h2>
+      </div>
+      <div>
+        <span>Profit / Loss</span>
+        <h2 id="profit">₹0</h2>
+      </div>
+    </div>
+
+    <!-- Add Transaction -->
+    <div class="card">
+      <h3>Add Transaction</h3>
+
+      <select id="type">
+        <option value="BUY">Buy</option>
+        <option value="SELL">Sell</option>
+      </select>
+
+      <input type="number" id="grams" placeholder="Grams">
+      <input type="number" id="price" placeholder="Price per gram">
+      <input type="date" id="date">
+
+      <button onclick="addTransaction()">Save</button>
+    </div>
+
+    <!-- History -->
+    <div class="card">
+      <h3>Transaction History</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Grams</th>
+            <th>Price</th>
+          </tr>
+        </thead>
+        <tbody id="history"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
